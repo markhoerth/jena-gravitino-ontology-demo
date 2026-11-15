@@ -1,0 +1,16 @@
+# Explain one column: what business concept it holds, and every category that
+# concept rolls up to. Change the column name in VALUES to ask about another.
+# Try card_game_id: it is Operational data, so nothing in the chain is Sensitive.
+
+PREFIX acme: <http://example.org/acme#>
+PREFIX gv:   <http://example.org/gravitino#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?column ?concept ?rollsUpTo WHERE {
+  VALUES ?columnName { "pan_7" }
+  ?column  gv:name ?columnName ; a gv:Column .
+  ?concept acme:storedIn ?column ;
+           acme:hasDataCategory ?category .
+  ?category rdfs:subClassOf* ?rollsUpTo .
+  ?rollsUpTo rdfs:subClassOf* acme:DataCategory .
+}

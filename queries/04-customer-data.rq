@@ -1,0 +1,26 @@
+# Ask in business words: "Where does Acme keep data about Customers,
+# including the things a Customer holds and places?"
+#
+# Starts at the business class Customer, follows the named relationships in the
+# ontology (holds -> Account, places -> Order), then describes -> storedIn into
+# the catalog. No table or column name appears in the question.
+
+PREFIX acme: <http://example.org/acme#>
+PREFIX gv:   <http://example.org/gravitino#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?about ?via ?table ?column ?concept WHERE {
+  {
+    BIND(acme:Customer AS ?class)
+    BIND("" AS ?via)
+  } UNION {
+    ?rel rdfs:domain acme:Customer ; rdfs:range ?class ; rdfs:label ?via .
+  }
+  ?class rdfs:label ?about .
+  ?c     acme:describes ?class ;
+         acme:storedIn  ?col ;
+         rdfs:label     ?concept .
+  ?col   gv:name ?column ;
+         gv:inTable / gv:fullName ?table .
+}
+ORDER BY ?via ?table ?column

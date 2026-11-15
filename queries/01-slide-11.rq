@@ -1,0 +1,15 @@
+# The query from slide 11, unchanged.
+# "Which columns hold sensitive data?" (the slide calls the result ?table;
+# in this sample every link points at a column, so that is what comes back)
+#
+#   rdfs:subClassOf*  walk the "is a kind of" links as far as they go
+#   ?category, ?concept, ?table  blanks for SPARQL to fill in
+
+PREFIX acme: <http://example.org/acme#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?table WHERE {
+  ?category rdfs:subClassOf* acme:SensitiveData .
+  ?concept  acme:hasDataCategory ?category .
+  ?concept  acme:storedIn        ?table .
+}

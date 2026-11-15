@@ -1,0 +1,86 @@
+# The Acme ontology. Written by hand, once, by someone who knows the business.
+#
+# Three kinds of statement live here:
+#   1. Data categories and how they nest   (Payment card is a kind of Financial data ...)
+#   2. Business concepts and their category (a Card number is Payment card data ...)
+#   3. Business classes and how they relate (a Customer holds an Account ...)
+#
+# Nothing in this file mentions a table or a column. That is links.ttl's job.
+
+@prefix acme: <http://example.org/acme#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/acme> a owl:Ontology ;
+    rdfs:label "Acme business ontology" .
+
+# ---------------------------------------------------------------------------
+# 1. Data categories. rdfs:subClassOf reads "is a kind of".
+# ---------------------------------------------------------------------------
+
+acme:DataCategory   a owl:Class ; rdfs:label "Data category" .
+
+acme:SensitiveData  a owl:Class ; rdfs:subClassOf acme:DataCategory ;  rdfs:label "Sensitive data" .
+acme:PersonalData   a owl:Class ; rdfs:subClassOf acme:SensitiveData ; rdfs:label "Personal data" .
+acme:ContactDetails a owl:Class ; rdfs:subClassOf acme:PersonalData ;  rdfs:label "Contact details" .
+acme:GovernmentId   a owl:Class ; rdfs:subClassOf acme:PersonalData ;  rdfs:label "Government ID" .
+acme:FinancialData  a owl:Class ; rdfs:subClassOf acme:SensitiveData ; rdfs:label "Financial data" .
+acme:PaymentCard    a owl:Class ; rdfs:subClassOf acme:FinancialData ; rdfs:label "Payment card" .
+acme:AccountBalance a owl:Class ; rdfs:subClassOf acme:FinancialData ; rdfs:label "Account balance" .
+acme:OperationalData a owl:Class ; rdfs:subClassOf acme:DataCategory ; rdfs:label "Operational data" .
+
+# The Gravitino tag that should sit on any column holding this category of data.
+acme:canonicalTag a owl:DatatypeProperty ;
+    rdfs:label "canonical tag" ;
+    rdfs:domain owl:Class ; rdfs:range xsd:string .
+
+acme:PersonalData   acme:canonicalTag "pii" .
+acme:GovernmentId   acme:canonicalTag "pii" .
+acme:PaymentCard    acme:canonicalTag "pci" .
+acme:AccountBalance acme:canonicalTag "financial" .
+
+# ---------------------------------------------------------------------------
+# 2. Business concepts. Each one belongs to exactly one data category.
+# ---------------------------------------------------------------------------
+
+acme:BusinessConcept a owl:Class ; rdfs:label "Business concept" .
+
+acme:hasDataCategory a owl:ObjectProperty ;
+    rdfs:label "has data category" ;
+    rdfs:domain acme:BusinessConcept ; rdfs:range acme:DataCategory .
+
+acme:CardNumber      a acme:BusinessConcept ; rdfs:label "Card number" ;      acme:hasDataCategory acme:PaymentCard .
+acme:EmailAddress    a acme:BusinessConcept ; rdfs:label "Email address" ;    acme:hasDataCategory acme:ContactDetails .
+acme:FullName        a acme:BusinessConcept ; rdfs:label "Full name" ;        acme:hasDataCategory acme:PersonalData .
+acme:SocialSecurityNumber a acme:BusinessConcept ; rdfs:label "Social security number" ; acme:hasDataCategory acme:GovernmentId .
+acme:AccountNumber   a acme:BusinessConcept ; rdfs:label "Account number" ;   acme:hasDataCategory acme:PersonalData .
+acme:Balance         a acme:BusinessConcept ; rdfs:label "Balance" ;          acme:hasDataCategory acme:AccountBalance .
+acme:OrderAmount     a acme:BusinessConcept ; rdfs:label "Order amount" ;     acme:hasDataCategory acme:OperationalData .
+acme:GameId          a acme:BusinessConcept ; rdfs:label "Game identifier" ;  acme:hasDataCategory acme:OperationalData .
+
+# ---------------------------------------------------------------------------
+# 3. Business classes and the named links between them.
+# ---------------------------------------------------------------------------
+
+acme:Customer a owl:Class ; rdfs:label "Customer" .
+acme:Account  a owl:Class ; rdfs:label "Account" .
+acme:Order    a owl:Class ; rdfs:label "Order" .
+acme:Refund   a owl:Class ; rdfs:label "Refund" .
+acme:Player   a owl:Class ; rdfs:label "Player" .
+
+acme:holds    a owl:ObjectProperty ; rdfs:label "holds" ;     rdfs:domain acme:Customer ; rdfs:range acme:Account .
+acme:places   a owl:ObjectProperty ; rdfs:label "places" ;    rdfs:domain acme:Customer ; rdfs:range acme:Order .
+acme:refundOf a owl:ObjectProperty ; rdfs:label "refund of" ; rdfs:domain acme:Refund ;   rdfs:range acme:Order .
+
+# Which business class a concept describes.
+acme:describes a owl:ObjectProperty ; rdfs:label "describes" ; rdfs:domain acme:BusinessConcept .
+
+acme:EmailAddress         acme:describes acme:Customer .
+acme:FullName             acme:describes acme:Customer .
+acme:SocialSecurityNumber acme:describes acme:Customer .
+acme:CardNumber           acme:describes acme:Order, acme:Refund .
+acme:AccountNumber        acme:describes acme:Account .
+acme:Balance              acme:describes acme:Account .
+acme:OrderAmount          acme:describes acme:Order .
+acme:GameId               acme:describes acme:Player .

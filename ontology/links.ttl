@@ -1,0 +1,37 @@
+# The links between the ontology (acme.ttl) and the catalog (the estate copied
+# out of Gravitino by scripts/mirror.py). Written by hand. Without these lines
+# the two graphs never meet.
+#
+# Two kinds of link:
+#   acme:storedIn   this business concept lives in this Gravitino column
+#   acme:standsFor  this Gravitino tag means this ontology class
+#
+# Gravitino objects are named  urn:gravitino:<metalake>:<catalog>.<schema>.<table>.<column>
+# and tags                     urn:gravitino:<metalake>:tag:<tag name>
+# which is exactly how scripts/mirror.py names them.
+
+@prefix acme: <http://example.org/acme#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+acme:storedIn  rdfs:label "stored in" .
+acme:standsFor rdfs:label "stands for" .
+
+# --- Which concept lives in which column -----------------------------------
+
+acme:CardNumber           acme:storedIn <urn:gravitino:acme:lakehouse.sales.orders.card> ,
+                                        <urn:gravitino:acme:lakehouse.payments.refunds.pan_7> .
+acme:OrderAmount          acme:storedIn <urn:gravitino:acme:lakehouse.sales.orders.amount> .
+acme:EmailAddress         acme:storedIn <urn:gravitino:acme:lakehouse.crm.customers.email> .
+acme:FullName             acme:storedIn <urn:gravitino:acme:lakehouse.crm.customers.full_name> .
+acme:SocialSecurityNumber acme:storedIn <urn:gravitino:acme:lakehouse.crm.customers.ssn> .
+acme:AccountNumber        acme:storedIn <urn:gravitino:acme:lakehouse.finance.accounts.account_no> .
+acme:Balance              acme:storedIn <urn:gravitino:acme:lakehouse.finance.accounts.balance> .
+acme:GameId               acme:storedIn <urn:gravitino:acme:lakehouse.games.sessions.card_game_id> .
+
+# --- Which Gravitino tag means which class ---------------------------------
+# Two teams spelled the personal-data tag differently. Both mean the same class.
+
+<urn:gravitino:acme:tag:pii>       acme:standsFor acme:PersonalData .
+<urn:gravitino:acme:tag:PII>       acme:standsFor acme:PersonalData .
+<urn:gravitino:acme:tag:pci>       acme:standsFor acme:PaymentCard .
+<urn:gravitino:acme:tag:financial> acme:standsFor acme:AccountBalance .

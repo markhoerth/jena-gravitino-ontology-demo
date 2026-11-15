@@ -1,0 +1,12 @@
+# The ontology on its own: every data category and the one it is a kind of.
+# No catalog involved. This only reads acme.ttl.
+
+PREFIX acme: <http://example.org/acme#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?category ?isAKindOf ?sensitive WHERE {
+  ?category rdfs:subClassOf ?isAKindOf .
+  ?isAKindOf rdfs:subClassOf* acme:DataCategory .
+  BIND(EXISTS { ?category rdfs:subClassOf* acme:SensitiveData } AS ?sensitive)
+}
+ORDER BY ?isAKindOf ?category

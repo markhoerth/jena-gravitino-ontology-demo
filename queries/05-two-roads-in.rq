@@ -1,0 +1,22 @@
+# Two ways a column can be found sensitive:
+#   link  someone wrote "this concept is stored in this column" in links.ttl
+#   tag   the column already carries a Gravitino tag that stands for a sensitive class
+# phone has no link at all, and is found through its pii tag.
+# ssn is found both ways, through a tag spelled PII.
+
+PREFIX acme: <http://example.org/acme#>
+PREFIX gv:   <http://example.org/gravitino#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?column ?foundBy ?category WHERE {
+  {
+    ?concept acme:hasDataCategory ?category ; acme:storedIn ?col .
+    BIND("link" AS ?foundBy)
+  } UNION {
+    ?col gv:hasTag ?tag . ?tag acme:standsFor ?category .
+    BIND("tag" AS ?foundBy)
+  }
+  ?category rdfs:subClassOf* acme:SensitiveData .
+  ?col gv:fullName ?column .
+}
+ORDER BY ?column ?foundBy

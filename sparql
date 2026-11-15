@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Runs scripts/run_sparql.py in the tools container. Needs only Docker on your machine.
+cd "$(dirname "$0")"
+# Wait for the one-shot loader that runs on `docker compose up` to finish.
+if [ -z "$(docker compose ps -a -q init-estate 2>/dev/null)" ]; then
+  echo "The sample has not been loaded. Run: docker compose up -d" >&2
+  exit 1
+fi
+if ! docker compose wait init-estate >/dev/null 2>&1; then
+  echo "The sample did not load. See: docker compose logs init init-tables init-estate" >&2
+  exit 1
+fi
+exec docker compose run --rm --quiet-pull tools python -u run_sparql.py "$@"

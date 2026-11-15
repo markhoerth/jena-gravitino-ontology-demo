@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Runs Spark SQL against the Iceberg tables, through Gravitino's Iceberg REST catalog.
+#   ./spark-sql "SELECT * FROM sales.orders"
+#   ./spark-sql            (interactive prompt; type quit; to leave)
+cd "$(dirname "$0")"
+if [ $# -eq 0 ]; then
+  exec docker compose exec spark spark-sql -S --hiveconf hive.cli.print.header=true
+fi
+exec docker compose exec -T spark spark-sql -S --hiveconf hive.cli.print.header=true -e "$1"
