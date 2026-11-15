@@ -114,7 +114,7 @@ It waits for the sample to finish loading, then prints a table of 8 sensitive co
 
 The scripts run inside a Python container, so you do not need Python, Java or Spark on your machine.
 
-On a Mac or Windows PC, open the addresses in your normal browser. On a cloud VM, the addresses only work on the VM itself. To open them from your own computer, keep an SSH tunnel open in a terminal on your computer while you browse. Set the two variables to your key file and the VM's address:
+On a Mac or Windows PC, open the addresses in your normal browser. Fuseki asks for a login: user `admin`, password `admin`. Gravitino asks for none. On a cloud VM, the addresses only work on the VM itself. To open them from your own computer, keep an SSH tunnel open in a terminal on your computer while you browse. Set the two variables to your key file and the VM's address:
 
 ```bash
 KEY=~/.ssh/my-key.pem       # change to the key file you use to log in to the VM
