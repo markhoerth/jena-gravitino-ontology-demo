@@ -12,21 +12,96 @@ Everything here is Apache 2.0. See [LICENSE](LICENSE).
 
 A personal example by Mark Hoerth, provided as is. Not an Apache Software Foundation project. Apache, Apache Gravitino, Apache Jena, Apache Iceberg and Apache Spark are trademarks of the Apache Software Foundation. Every version in the stack is pinned, and the whole stack is tested on Docker on Linux.
 
-## What you need
+## Start from zero
 
-- Docker with Compose v2.20 or later, and about 4 GB of free memory
-- Free ports 3030 (Fuseki), 8090 (Gravitino) and 9001 (Iceberg REST)
-- A bash shell: macOS, Linux, or WSL on Windows
+You need nothing installed except Docker. These steps assume you have never used Docker or Git before. Allow about 20 minutes, most of it downloads.
 
-Nothing else. The scripts run inside a Python container.
+### Step 1: Pick a machine
 
-## Start it
+Any one of these works:
+
+- **A Mac** (Intel or Apple silicon) with 8 GB of memory or more
+- **A Windows 10 or 11 PC** with 8 GB of memory or more
+- **A Linux machine or a cloud VM** with 2 CPUs, 8 GB of memory and 20 GB of disk, such as an AWS EC2 `t3.large` running Ubuntu
+
+The stack uses about 4 GB of memory and 5 GB of disk.
+
+### Step 2: Install Docker
+
+**On a Mac:**
+
+1. Download Docker Desktop from https://www.docker.com/products/docker-desktop/ and install it like any other app.
+2. Open Docker Desktop and wait until it says Docker is running.
+3. Open the **Terminal** app. Every command in this README goes there.
+
+**On Windows:**
+
+The commands in this README are Linux commands, so on Windows you run them inside WSL, a small Linux that Windows provides.
+
+1. Open **PowerShell as Administrator** (right-click the Start button, then **Terminal (Admin)**) and run:
+   ```
+   wsl --install
+   ```
+   Restart the PC when it asks.
+2. After the restart an **Ubuntu** window opens. Choose a user name and password when it asks. From now on, every command in this README goes in that Ubuntu window. You can reopen it any time from the Start menu by searching for **Ubuntu**.
+3. Download Docker Desktop from https://www.docker.com/products/docker-desktop/ and install it.
+4. Open Docker Desktop, go to **Settings → Resources → WSL integration**, switch on **Ubuntu**, and click **Apply & restart**.
+
+**On Linux or a cloud VM (Ubuntu):**
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker "$USER"
+exit
+```
+
+The last line logs you out. Log back in so your user can run Docker without `sudo`.
+
+**Check Docker works (all machines):**
+
+```bash
+docker compose version
+docker run --rm hello-world
+```
+
+The first line should print a version of v2.20 or later. The second should print `Hello from Docker!`.
+
+### Step 3: Get the code
+
+```bash
+git clone https://github.com/markhoerth/jena-gravitino-ontology-demo
+cd jena-gravitino-ontology-demo
+```
+
+If the first line says `git: command not found`, install Git and run it again: on a Mac run `xcode-select --install`; on Ubuntu or WSL run `sudo apt-get update && sudo apt-get install -y git`.
+
+On Windows, clone inside the Ubuntu window, not in a Windows folder or with a Windows Git tool. The scripts are Linux scripts and stop working if Windows changes their line endings.
+
+### Step 4: Start the stack
 
 ```bash
 docker compose up -d
 ```
 
-The first run builds two small images and pulls the rest, so give it a few minutes. When it finishes, the sample is loaded: tables created, existing tags applied, the estate copied into Jena. Every command below waits for that load to complete before it runs.
+The first run downloads about 5 GB and builds two small images, so it takes 5 to 15 minutes depending on your connection. Later starts take under a minute. The command returns when every container has started; the sample keeps loading for about a minute after that.
+
+To see where it is:
+
+```bash
+docker compose ps -a
+```
+
+When it is ready, `fuseki`, `gravitino`, `postgres` and `spark` show `running`, and `init`, `init-tables` and `init-estate` show `exited (0)`. Those three are one-shot jobs that load the sample and stop; `exited (0)` means they finished without error.
+
+### Step 5: Run the first command
+
+```bash
+./find-sensitive
+```
+
+It waits for the sample to finish loading, then prints a table of 8 sensitive columns, followed by the 5 that nobody ever tagged. If you see that, everything works. Carry on with the three use cases below.
+
+### What is running
 
 | Service | What it is | Address |
 |---|---|---|
@@ -36,6 +111,28 @@ The first run builds two small images and pulls the rest, so give it a few minut
 | `spark` | Apache Spark 3.5.7 with Apache Iceberg 1.11.0 | `./spark-sql` |
 | `postgres` | Where the Iceberg catalog keeps its table pointers | internal only |
 | `init`, `init-tables`, `init-estate` | One-shot jobs that load the sample, then exit | |
+
+The scripts run inside a Python container, so you do not need Python, Java or Spark on your machine.
+
+On a Mac or Windows PC, open the addresses in your normal browser. On a cloud VM, the addresses only work on the VM itself. To open them from your own computer, keep an SSH tunnel open in a terminal on your computer while you browse. Set the two variables to your key file and the VM's address:
+
+```bash
+KEY=~/.ssh/my-key.pem
+VM=ubuntu@203.0.113.10
+ssh -i "$KEY" -L 3030:localhost:3030 -L 8090:localhost:8090 "$VM"
+```
+
+### If something goes wrong
+
+| What you see | What it means | What to do |
+|---|---|---|
+| `address already in use` on port 3030, 8090 or 9001 | Something else on your machine uses that port | Find it with `sudo ss -ltnp \| grep -E ':3030\|:8090\|:9001'` (Linux, WSL) or `lsof -i :3030` (Mac), stop it, then run `docker compose up -d` again |
+| `permission denied ... docker.sock` | Your user is not in the `docker` group yet | Log out and back in after Step 2, or on Mac and Windows check Docker Desktop is running |
+| `Cannot connect to the Docker daemon` | Docker is not running | Start Docker Desktop, or on Linux run `sudo systemctl start docker` |
+| `/usr/bin/env: 'bash\r': No such file or directory` | Windows changed the line endings | Delete the folder and clone again inside the Ubuntu window (Step 3) |
+| `The sample has not been loaded` | The stack is not up | Run `docker compose up -d` |
+| `The sample did not load` | One of the loading jobs failed | Run `docker compose logs init init-tables init-estate` and look at the last lines |
+| A container keeps restarting, or the machine is very slow | Not enough memory for Docker | Give Docker at least 4 GB in Docker Desktop under **Settings → Resources**, or use a bigger VM |
 
 ## The sample
 
