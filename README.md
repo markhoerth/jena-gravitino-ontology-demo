@@ -117,8 +117,8 @@ The scripts run inside a Python container, so you do not need Python, Java or Sp
 On a Mac or Windows PC, open the addresses in your normal browser. On a cloud VM, the addresses only work on the VM itself. To open them from your own computer, keep an SSH tunnel open in a terminal on your computer while you browse. Set the two variables to your key file and the VM's address:
 
 ```bash
-KEY=~/.ssh/my-key.pem
-VM=ubuntu@203.0.113.10
+KEY=~/.ssh/my-key.pem       # change to the key file you use to log in to the VM
+VM=ubuntu@203.0.113.10      # change 203.0.113.10 to your VM's public IP address
 ssh -i "$KEY" -L 3030:localhost:3030 -L 8090:localhost:8090 "$VM"
 ```
 
